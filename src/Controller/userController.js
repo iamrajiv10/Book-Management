@@ -32,9 +32,7 @@ const login = async function (req, res) {
     try {
         const requestBody = req.body; // it consist email and password
         if (!isValidRequestBody(requestBody)) {
-            return res
-                .status(400)
-                .send({ status: false, message: "Provide Credentials for login" });
+            return res.status(400).send({ status: false, message: "Provide Credentials for login" });
         }
         
         if (!requestBody.email ) { return res.status(400).send({ status: false, message: "email is required for login" }) }

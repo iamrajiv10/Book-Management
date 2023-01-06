@@ -1,6 +1,7 @@
 const BookModel = require('../Model/bookModel')
 const reviewModel = require('../Model/reviewModel')
 const UserModel = require('../Model/userModel')
+const {uploadFile}= require('../Middleware/aws')
 const moment = require("moment");
 const { default: mongoose } = require('mongoose');
 
@@ -32,14 +33,14 @@ const createBook = async function (req, res) {
 
   try {
 
-    const requestBody = req.body;
+    //const requestBody = req.body;
     const queryParams = req.query;
     const decoded = req.decoded;
 
     //  query params should be empty
-    if (isValidRequestBody(queryParams)) { return res.status(400).send({ status: false, message: "invalid request" }) }
+    //if (isValidRequestBody(queryParams)) { return res.status(400).send({ status: false, message: "invalid request" }) }
 
-    if (!isValidRequestBody(requestBody)) { return res.status(400).send({ status: false, message: "Book data is required to create a new Book" }) }
+    //if (!isValidRequestBody(requestBody)) { return res.status(400).send({ status: false, message: "Book data is required to create a new Book" }) }
 
     // using destructuring then validate the keys
     const { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = requestBody;
@@ -90,6 +91,27 @@ const createBook = async function (req, res) {
 
     // validating the date
     if (moment(releasedAt).isValid() == false) { return res.status(400).send({ status: false, message: "enter a valid released date" }) }
+
+
+
+    
+    let file = req.files
+
+    if(file && file.length>0){
+        //upload to s3 and get the uploaded link
+        // res.send the link back to frontend/postman
+        let uploadedFileURL= await uploadFile(file[0])
+
+        requestBody['bookCover'] = uploadedFileURL
+        console.log(uploadedFileURL)
+    }
+    else{
+        res.status(400).send({status : false, message: "No file found" })
+    }
+      
+  
+
+
 
     const newBook = await BookModel.create(requestBody);
     res.status(201).send({ status: true, message: "new book added successfully", data: newBook });
